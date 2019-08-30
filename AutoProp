@@ -1,0 +1,133 @@
+;by白侠
+;QQ:906599772
+;群:521771550
+SetDefaultMouseSpeed, 0  ;click时鼠标默认移动速度
+CoordMode, Mouse, Client ;模式选择
+
+global StashTap := {}
+global BigStashTap := {}
+global TWE := {}
+global clipwaitsce := 0.01
+global Position := {}
+global PosNum := ["仓库点","大师","H点","seek","seal"]
+global Positem := 0
+global ready := 0
+loop , 12
+{
+	TWE[A_index] := A_index
+}
+
+;开始
+^F3::
+actWin := WinExist("A") ;活跃窗口
+GetClientSize(actWin,ww,hh) ;分辨率读取
+if ready = 0
+{
+	mms := "点位没有补齐"
+	ToolTip,%mms%
+	SetTimer, RemoveToolTip, 2000
+	return
+}
+moveto("大师",500) ;点击大师
+click,left,1
+sleep,50
+moveto("H点",500) ;点击H点
+click,left,1
+send, i
+sleep,500
+mainloop(ww,hh)  ;循环摆放到背包
+sleep,20
+return
+
+
+;几个关键点的定位
+^F2::
+CoordMode, Mouse, Client
+MouseGetPos, xpos, ypos
+Positem += 1
+value := PosNum[Positem]
+;actWin := WinExist("Path of Exile","ahk_exe".PathOfExile_x64.exe)
+;GetClientSize(actWin,ww,hh)
+Pointms = %xpos% %ypos% %value%
+ToolTip,%Pointms%
+SetTimer, RemoveToolTip, 2000
+Position[value] := {x:xpos,y:ypos}
+ms := ms . value . ":" . Position[value].x . "," . position[value].y  join
+ms = %ms%`n
+if positem = 5
+{
+	positem := 0
+	ready := 1
+}
+else
+{
+	ready := 0
+}
+return
+
+
+RemoveToolTip:
+ToolTip
+SetTimer, RemoveToolTip, off
+return
+
+
+
+moveto(item,movesleep) ;移动
+{
+	itemx := Position[item].x
+	itemy := Position[item].y
+	click, %itemx%, %itemy%, 0
+	sleep, movesleep
+}
+
+movetoclick(item,movesleep) ;移动点击
+{
+	itemx := Position[item].x
+	itemy := Position[item].y
+	click, %itemx%, %itemy%, 0
+	sleep, movesleep
+	click,left,1
+	sleep, movesleep
+}
+
+mainloop(ww,hh) ;主流程
+{
+	step := Format("{:d}", hh *  0.0483) ;步程计算
+	FirstStashCellX := ww - Format("{:d}", hh* 0.5741) ;x坐标计算﻿
+	FirstStashCellY := Format("{:d}", hh* 0.5704) ;y坐标计算
+	for i in TWE
+	{
+		loop , 5
+		{
+			random,rand,100,180
+			StashCellX := FirstStashCellX + step * (i -1)
+			StashCellY := FirstStashCellY + step * ( A_index -1)
+			movetoclick("seek",100)
+			movetoclick("seal",100)
+			send {Enter}
+			sleep,rand
+			click, %StashCellX%, %StashCellY%, 0
+			sleep,rand
+			click,left,1
+			sleep,rand
+		}
+	}
+	ToolTip
+	return
+}
+
+	
+
+GetClientSize(hWnd, ByRef w := "", ByRef h := "") ;分辨率读取
+{
+	VarSetCapacity(rect, 16)
+	DllCall("GetClientRect", "ptr", hWnd, "ptr", &rect)
+	w := NumGet(rect, 8, "int")
+	h := NumGet(rect, 12, "int")
+}
+
+
+^space::
+Pause
+
